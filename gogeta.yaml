@@ -1,9 +1,10 @@
 ---
-etcd: '127.0.0.1:4001'
+etcd: 127.0.0.1:4001
 services:
-    foo.example.com:
-        - backend-1.backend
-        - backend-2.backend
-    bar.example.com:
-        - backend-3.backend
-        - backend-4.backend
+  bar.example.com:
+  - backend-3.backend
+  - backend-4.backend
+  foo.example.com:
+  - backend-1.backend
+  - backend-2.backend
+
