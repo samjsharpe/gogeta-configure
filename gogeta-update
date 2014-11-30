@@ -12,6 +12,7 @@ def parse_options():
     parser.add_argument('--update', '-u', action='store_true', default=False, help='Update services')
     parser.add_argument('--list', '-l', action='store_true', default=False, help='List services')
     parser.add_argument('--dry-run', '-D', action='store_true', default=False, help='Do not change configuration')
+    parser.add_argument('--purge', action='store_true', default=False, help='Purge all gogeta config from etcd')
     return parser.parse_args()
 
 
@@ -144,6 +145,9 @@ def update_services(config):
 if __name__ == '__main__':
     options = parse_options()
     config = load_config(options.config_file)
+    if options.purge:
+        rm_key('/domains')
+        rm_key('/services')
     if options.list:
         list_services(get_services())
     if options.update:
