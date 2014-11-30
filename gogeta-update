@@ -35,10 +35,11 @@ def get_key(key,etcd):
     return value
 
 
-def update_services(services,app_domain,etcd):
-    for service, servers in services.items():
-        set_key('/domains/{0}.{1}/type'.format(service,app_domain), 'service', etcd)
-        set_key('/domains/{0}.{1}/value'.format(service,app_domain), service, etcd)
+def update_services(config):
+    etcd = config['etcd']
+    for service, servers in config['services'].items():
+        set_key('/domains/{0}/type'.format(service), 'service', etcd)
+        set_key('/domains/{0}/value'.format(service), service, etcd)
         for server in servers:
             server_number = servers.index(server) + 1
             value = '{"host":"' + server + '","port":80}'
@@ -46,6 +47,5 @@ def update_services(services,app_domain,etcd):
 
 
 if __name__ == '__main__':
-    etcd = '127.0.0.1:4001'
     config = load_config('gogeta.yaml')
-    update_services(config['services'],config['app_domain'], etcd)
+    update_services(config)
