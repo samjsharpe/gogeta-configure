@@ -1,0 +1,51 @@
+#!/usr/bin/python
+import json
+import requests
+import yaml
+
+
+def load_config(config_file):
+    config = yaml.load(open(config_file,'r').read())
+    return config
+
+
+def set_key(key, value, etcd):
+    url = 'http://{0}/v2/keys{1}'.format(etcd,key)
+    params = {}
+    params['value'] = value
+    params['ttl'] = 0
+    response = requests.put(url, data=params)
+    if response.status_code == 200:
+        pass
+        #print 'Key {0} is unchanged'.format(key)
+    elif response.status_code == 201:
+        pass
+        #print 'Key {0} changed to {1}'.format(key,value)
+    else:
+        print 'Error: setting {0} to {1}'.format(key,value)
+
+
+def get_key(key,etcd):
+    url = 'http://{0}/v2/keys{1}'.format(etcd,key)
+    response = requests.get(url)
+    try:
+        value = json.loads(response.text)['node']['value']
+    except:
+        value = ''
+    return value
+
+
+def update_services(services,app_domain,etcd):
+    for service, servers in services.items():
+        set_key('/domains/{0}.{1}/type'.format(service,app_domain), 'service', etcd)
+        set_key('/domains/{0}.{1}/value'.format(service,app_domain), service, etcd)
+        for server in servers:
+            server_number = servers.index(server) + 1
+            value = '{"host":"' + server + '","port":80}'
+            set_key('/services/{0}/{1}/location'.format(service,server_number), value, etcd)
+
+
+if __name__ == '__main__':
+    etcd = '127.0.0.1:4001'
+    config = load_config('gogeta.yaml')
+    update_services(config['services'],config['app_domain'], etcd)

@@ -1,0 +1,69 @@
+---
+app_domain: dev.gov.uk
+services:
+    businesssupportfinder:
+        - calculators-frontend-1.frontend
+        - calculators-frontend-2.frontend
+    calculators:
+        - calculators-frontend-1.frontend
+        - calculators-frontend-2.frontend
+    calendars:
+        - calculators-frontend-1.frontend
+        - calculators-frontend-2.frontend
+    canary-frontend:
+        - frontend-1.frontend
+        - frontend-2.frontend
+    collections:
+        - frontend-1.frontend
+        - frontend-2.frontend
+    contacts-frontend:
+        - frontend-1.frontend
+        - frontend-2.frontend
+    contacts-frontend-old:
+        - frontend-1.frontend
+        - frontend-2.frontend
+    designprinciples:
+        - frontend-1.frontend
+        - frontend-2.frontend
+    feedback:
+        - frontend-1.frontend
+        - frontend-2.frontend
+    finder-frontend:
+        - calculators-frontend-1.frontend
+        - calculators-frontend-2.frontend
+    frontend:
+        - frontend-1.frontend
+        - frontend-2.frontend
+    government-frontend:
+        - frontend-1.frontend
+        - frontend-2.frontend
+    info-frontend:
+        - frontend-1.frontend
+        - frontend-2.frontend
+    licencefinder:
+        - calculators-frontend-1.frontend
+        - calculators-frontend-2.frontend
+    manuals-frontend:
+        - frontend-1.frontend
+        - frontend-2.frontend
+    service-manual:
+        - frontend-1.frontend
+        - frontend-2.frontend
+    smartanswers:
+        - calculators-frontend-1.frontend
+        - calculators-frontend-2.frontend
+    specialist-frontend:
+        - frontend-1.frontend
+        - frontend-2.frontend
+    static:
+        - frontend-1.frontend
+        - frontend-2.frontend
+    tariff:
+        - calculators-frontend-1.frontend
+        - calculators-frontend-2.frontend
+    transactions-explorer:
+        - frontend-1.frontend
+        - frontend-2.frontend
+    whitehall-frontend:
+        - whitehall-frontend-1.frontend
+        - whitehall-frontend-2.frontend
