@@ -4,6 +4,12 @@ services:
     foo.example.com:
         - backend-1.backend
         - backend-2.backend
+        - backend-3.backend
     bar.example.com:
+        - backend-4.backend
+    baz.example.com:
+        - backend-1.backend
+        - backend-2.backend
         - backend-3.backend
         - backend-4.backend
+
