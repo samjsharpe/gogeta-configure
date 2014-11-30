@@ -1,7 +1,16 @@
 #!/usr/bin/python
+import argparse
 import json
 import requests
 import yaml
+
+
+def parse_options():
+    parser = argparse.ArgumentParser(description='Update gogeta via etcd')
+    parser.add_argument('config_file', nargs='?', help='YAML config file (default: gogeta.yaml)', default='gogeta.yaml')
+    parser.add_argument('--debug', '-d', action='store_true', default=False, help='Show debug logging')
+    parser.add_argument('--silent', '-s', action='store_true', default=False, help='Hide error logging')
+    return parser.parse_args()
 
 
 def load_config(config_file):
@@ -9,43 +18,56 @@ def load_config(config_file):
     return config
 
 
-def set_key(key, value, etcd):
-    url = 'http://{0}/v2/keys{1}'.format(etcd,key)
-    params = {}
-    params['value'] = value
-    params['ttl'] = 0
-    response = requests.put(url, data=params)
-    if response.status_code == 200:
-        pass
-        #print 'Key {0} is unchanged'.format(key)
-    elif response.status_code == 201:
-        pass
-        #print 'Key {0} changed to {1}'.format(key,value)
+def debug(message):
+    if options.debug:
+        print '[debug]: {0}'.format(message)
+
+
+def error(message):
+    if not options.silent:
+        print '[error]: {0}'.format(message.rstrip())
+
+
+def set_key(key, value):
+    url = 'http://{0}/v2/keys{1}'.format(config['etcd'],key)
+    old_value = get_key(key)
+    if value == old_value:
+        debug('Key {0} is already set to {1}'.format(key,value))
     else:
-        print 'Error: setting {0} to {1}'.format(key,value)
+        data = {}
+        data['value'] = value
+        response = requests.put(url, data=data)
+        if response.status_code == 200:
+            debug('Key {0} set to {1}'.format(key,value))
+        elif response.status_code == 201:
+            debug('Key {0} created as {1}'.format(key,value))
+        else:
+            error('Cannot set {0} to {1}'.format(key,value))
+            error('Etcd: {0} ({1})'.format(response.text, response.status_code))
 
 
-def get_key(key,etcd):
-    url = 'http://{0}/v2/keys{1}'.format(etcd,key)
+def get_key(key):
+    url = 'http://{0}/v2/keys{1}'.format(config['etcd'],key)
     response = requests.get(url)
     try:
         value = json.loads(response.text)['node']['value']
     except:
+        debug('Key {0} not found'.format(key))
         value = ''
     return value
 
 
 def update_services(config):
-    etcd = config['etcd']
     for service, servers in config['services'].items():
-        set_key('/domains/{0}/type'.format(service), 'service', etcd)
-        set_key('/domains/{0}/value'.format(service), service, etcd)
+        set_key('/domains/{0}/type'.format(service), 'service')
+        set_key('/domains/{0}/value'.format(service), service)
         for server in servers:
             server_number = servers.index(server) + 1
             value = '{"host":"' + server + '","port":80}'
-            set_key('/services/{0}/{1}/location'.format(service,server_number), value, etcd)
+            set_key('/services/{0}/{1}/location'.format(service,server_number), value)
 
 
 if __name__ == '__main__':
-    config = load_config('gogeta.yaml')
+    options = parse_options()
+    config = load_config(options.config_file)
     update_services(config)
