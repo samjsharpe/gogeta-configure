@@ -9,7 +9,7 @@ from gogeta_configure import __version__
 
 def parse_options():
     parser = argparse.ArgumentParser(description='Update gogeta via etcd')
-    parser.add_argument('config_file', nargs='?', help='YAML config file (default: gogeta.yaml)', default='gogeta.yaml')
+    parser.add_argument('config_file', nargs='?', help='YAML config file (use "-" to read from STDIN)', default=None)
     parser.add_argument('--debug', '-d', action='store_true', default=False, help='Show debug logging')
     parser.add_argument('--silent', '-s', action='store_true', default=False, help='Hide error logging')
     parser.add_argument('--update', '-u', action='store_true', default=False, help='Update services')
@@ -21,12 +21,20 @@ def parse_options():
 
 
 def load_config(config_file):
-    try:
-        config = yaml.load(open(config_file,'r').read())
-        return config
-    except IOError:
-        print '[error] Could not load config file {0}'.format(config_file)
-        sys.exit(1)
+    if config_file == None:
+        debug('Config file not supplied, assuming etcd is 127.0.0.1:4001')
+        config = {}
+        config['etcd'] = '127.0.0.1:4001'
+    elif config_file == '-':
+        debug('Reading config from STDIN')
+        config = yaml.load(sys.stdin.read())
+    else:
+        try:
+            config = yaml.load(open(config_file,'r').read())
+        except IOError:
+            print '[error] Could not load config file {0}'.format(config_file)
+            sys.exit(1)
+    return config
 
 
 def debug(message):
@@ -151,13 +159,16 @@ def cleanup(config):
 
 
 def update_services(config):
-    for service, servers in config['services'].items():
-        set_key('/domains/{0}/type'.format(service), 'service')
-        set_key('/domains/{0}/value'.format(service), service)
-        for server in servers:
-            server_number = servers.index(server) + 1
-            value = '{"host":"' + server + '","port":80}'
-            set_key('/services/{0}/{1}/location'.format(service,server_number), value)
+    if 'services' in config:
+        for service, servers in config['services'].items():
+            set_key('/domains/{0}/type'.format(service), 'service')
+            set_key('/domains/{0}/value'.format(service), service)
+            for server in servers:
+                server_number = servers.index(server) + 1
+                value = '{"host":"' + server + '","port":80}'
+                set_key('/services/{0}/{1}/location'.format(service,server_number), value)
+    else:
+        error('No config file supplied or no services defined in the config',4)
 
 
 def main():
