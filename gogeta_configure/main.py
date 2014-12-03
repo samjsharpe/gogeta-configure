@@ -2,9 +2,10 @@
 import argparse
 import json
 import requests
+import sys
 import yaml
 
-from gogeta_update import __version__
+from gogeta_configure import __version__
 
 def parse_options():
     parser = argparse.ArgumentParser(description='Update gogeta via etcd')
@@ -15,12 +16,17 @@ def parse_options():
     parser.add_argument('--list', '-l', action='store_true', default=False, help='List services')
     parser.add_argument('--dry-run', '-D', action='store_true', default=False, help='Do not change configuration')
     parser.add_argument('--purge', action='store_true', default=False, help='Purge all gogeta config from etcd')
+    parser.add_argument('--version', '-v', action='version', version='%(prog)s {0}'.format(__version__))
     return parser.parse_args()
 
 
 def load_config(config_file):
-    config = yaml.load(open(config_file,'r').read())
-    return config
+    try:
+        config = yaml.load(open(config_file,'r').read())
+        return config
+    except IOError:
+        print '[error] Could not load config file {0}'.format(config_file)
+        sys.exit(1)
 
 
 def debug(message):
@@ -28,9 +34,11 @@ def debug(message):
         print '[debug]: {0}'.format(message)
 
 
-def error(message):
+def error(message,exitcode=None):
     if not options.silent:
         print '[error]: {0}'.format(message.rstrip())
+    if exitcode:
+        sys.exit(exitcode)
 
 
 def set_key(key, value):
@@ -75,10 +83,17 @@ def list_dir(key):
     url = 'http://{0}/v2/keys{1}'.format(config['etcd'],key)
     dir_list = []
     response = requests.get(url)
-    sub_keys = json.loads(response.text)['node']['nodes']
-    for directory in sub_keys:
-        dir_list.append(directory['key'])
-    return dir_list
+    json_response = json.loads(response.text)
+    if 'node' in json_response:
+        if 'nodes' in json_response['node']:
+            sub_keys = json_response['node']['nodes']
+            for directory in sub_keys:
+                dir_list.append(directory['key'])
+            return dir_list
+        else:
+            error('Key {0} is not a directory'.format(key),2)
+    else:
+        error('Key {0} does not exist, perhaps the service is not configured'.format(key),2)
 
 
 def get_services():
@@ -126,6 +141,7 @@ def deleted_backends(service_list, config):
 
 
 def cleanup(config):
+    debug('Running cleanup of unconfigured domains, services and backends')
     services = get_services()
     keys = deleted_items('/domains',services,config)
     keys += deleted_items('/services',services,config)
@@ -145,6 +161,8 @@ def update_services(config):
 
 
 def main():
+    global config
+    global options
     options = parse_options()
     config = load_config(options.config_file)
     if options.purge:
