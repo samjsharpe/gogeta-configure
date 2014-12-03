@@ -4,6 +4,8 @@ import json
 import requests
 import yaml
 
+from gogeta_update import __version__
+
 def parse_options():
     parser = argparse.ArgumentParser(description='Update gogeta via etcd')
     parser.add_argument('config_file', nargs='?', help='YAML config file (default: gogeta.yaml)', default='gogeta.yaml')
@@ -142,7 +144,7 @@ def update_services(config):
             set_key('/services/{0}/{1}/location'.format(service,server_number), value)
 
 
-if __name__ == '__main__':
+def main():
     options = parse_options()
     config = load_config(options.config_file)
     if options.purge:
@@ -153,3 +155,7 @@ if __name__ == '__main__':
     if options.update:
         update_services(config)
         cleanup(config)
+
+
+if __name__ == '__main__':
+    main()
