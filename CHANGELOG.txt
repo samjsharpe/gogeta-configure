@@ -1,0 +1,10 @@
+2014-12-04 - version 0.0.3
+ - Update README with current usage/examples
+ - Read config from STDIN as YAML
+
+2014-12-03 - version 0.0.2
+ - Display version number
+ - Handle some of the more obvious possible errors more gracefully
+
+2014-12-02 - version 0.0.1
+ - Initial release of pip package
