@@ -18,7 +18,7 @@ setup(
     packages=find_packages(exclude=['test*']),
 
     author='Sam J Sharpe',
-    author_email='sam@samsharpe.net',
+    author_email='hidden',
     maintainer='Sam J Sharpe',
     url='https://github.com/samjsharpe/gogeta-configure',
 
